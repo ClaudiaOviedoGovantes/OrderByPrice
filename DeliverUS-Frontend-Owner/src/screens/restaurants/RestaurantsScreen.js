@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { StyleSheet, FlatList, Pressable, View } from 'react-native'
 
-import { getAll, remove } from '../../api/RestaurantEndpoints'
+import { getAll, remove, updateOrder } from '../../api/RestaurantEndpoints'
 import ImageCard from '../../components/ImageCard'
 import TextSemiBold from '../../components/TextSemibold'
 import TextRegular from '../../components/TextRegular'
@@ -77,6 +77,25 @@ export default function RestaurantsScreen ({ navigation, route }) {
             </TextRegular>
           </View>
         </Pressable>
+
+        <Pressable
+            onPress={() => { updateRestaurantOrder(item) }}
+            style={() => [
+              {
+                backgroundColor: item.sortByPrice
+                  ? GlobalStyles.brandSuccessDisabled
+                  : GlobalStyles.brandSuccess
+              },
+              styles.actionButton
+            ]}>
+          <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
+            <MaterialCommunityIcons name='sort' color={'white'} size={20}/>
+            <TextRegular textStyle={styles.text}>
+            <TextRegular textStyle={{ textAlign: 'right' }}>Currently sorting products<TextSemiBold> by {item.sortByPrice ? 'price' : 'default'}</TextSemiBold></TextRegular>
+            </TextRegular>
+          </View>
+        </Pressable>
+
         </View>
       </ImageCard>
     )
@@ -152,6 +171,31 @@ export default function RestaurantsScreen ({ navigation, route }) {
       })
     }
   }
+  const updateRestaurantOrder = async (restaurant) => {
+    try {
+      const updatedOrder = await updateOrder(restaurant.id)
+      if (updatedOrder) {
+        await fetchRestaurants()
+
+        /// setRestaurantToBeUpdatedOrder(null)
+        showMessage({
+          message: `Restaurant ${restaurant.name} succesfully changed his product order`,
+          type: 'success',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+    } catch (error) {
+      console.log(error)
+      // setRestaurantToBeUpdatedOrder(null)
+      showMessage({
+        message: `Restaurant ${restaurant.name} could not change his product order.`,
+        type: 'error',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+    }
+  }
 
   return (
     <>
@@ -195,7 +239,7 @@ const styles = StyleSheet.create({
     padding: 10,
     alignSelf: 'center',
     flexDirection: 'column',
-    width: '50%'
+    width: '30%'
   },
   actionButtonsContainer: {
     flexDirection: 'row',

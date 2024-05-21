@@ -50,7 +50,12 @@ const create = async function (req, res) {
 const show = async function (req, res) {
   // Only returns PUBLIC information of restaurants
   try {
-    const restaurant = await Restaurant.findByPk(req.params.restaurantId, {
+    let restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    const orderBy = restaurant.orderByPrice
+      ? [[{ model: Product, as: 'products' }, 'price', 'ASC']]
+      : [[{ model: Product, as: 'products' }, 'order', 'ASC']]
+
+    restaurant = await Restaurant.findByPk(req.params.restaurantId, {
       attributes: { exclude: ['userId'] },
       include: [{
         model: Product,
@@ -61,7 +66,7 @@ const show = async function (req, res) {
         model: RestaurantCategory,
         as: 'restaurantCategory'
       }],
-      order: [[{ model: Product, as: 'products' }, 'order', 'ASC']]
+      order: orderBy // aqui se especifica el orden en el que se muestra el contenido de Rest.
     }
     )
     res.json(restaurant)
@@ -70,9 +75,20 @@ const show = async function (req, res) {
   }
 }
 
+const updateOrder = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk({ id: req.params.restaurantId })
+    restaurant.orderByPrice = !restaurant.orderByPrice
+    restaurant.save()
+    res.json(restaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
 const update = async function (req, res) {
   try {
     await Restaurant.update(req.body, { where: { id: req.params.restaurantId } })
+
     const updatedRestaurant = await Restaurant.findByPk(req.params.restaurantId)
     res.json(updatedRestaurant)
   } catch (err) {
@@ -101,6 +117,7 @@ const RestaurantController = {
   create,
   show,
   update,
-  destroy
+  destroy,
+  updateOrder
 }
 export default RestaurantController
