@@ -111,6 +111,17 @@ const destroy = async function (req, res) {
   }
 }
 
+const send = async function (req, res) {
+  try {
+    const initialRestaurant = await Restaurant.findByPk(req.params.restaurantId)
+    initialRestaurant.orderByPrice = !initialRestaurant.orderByPrice
+    const updatedRestaurant = await initialRestaurant.save()
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
+
 const RestaurantController = {
   index,
   indexOwner,
@@ -118,6 +129,7 @@ const RestaurantController = {
   show,
   update,
   destroy,
-  updateOrder
+  updateOrder,
+  send
 }
 export default RestaurantController

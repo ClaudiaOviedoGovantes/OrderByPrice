@@ -20,6 +20,10 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: new Date()
+      },
+      orderByPrice: {
+        type: Sequelize.BOOLEAN,
+        default: false
       }
     })
   },

@@ -18,6 +18,9 @@ export default function RestaurantsScreen ({ navigation, route }) {
   const [restaurantToBeDeleted, setRestaurantToBeDeleted] = useState(null)
   const { loggedInUser } = useContext(AuthorizationContext)
 
+  const [restaurant, setRestaurant] = useState({})
+  const [backendErrors, setBackendErrors] = useState()
+
   useEffect(() => {
     if (loggedInUser) {
       fetchRestaurants()
@@ -77,30 +80,44 @@ export default function RestaurantsScreen ({ navigation, route }) {
             </TextRegular>
           </View>
         </Pressable>
-
         <Pressable
-            onPress={() => { updateRestaurantOrder(item) }}
-            style={() => [
+            onPress={() => { newOrder(item) }}
+            style={({ pressed }) => [
               {
-                backgroundColor: item.sortByPrice
-                  ? GlobalStyles.brandSuccessDisabled
-                  : GlobalStyles.brandSuccess
+                backgroundColor: pressed
+                  ? GlobalStyles.brandGreenTap
+                  : GlobalStyles.brandGreen
               },
               styles.actionButton
             ]}>
           <View style={[{ flex: 1, flexDirection: 'row', justifyContent: 'center' }]}>
             <MaterialCommunityIcons name='sort' color={'white'} size={20}/>
             <TextRegular textStyle={styles.text}>
-            <TextRegular textStyle={{ textAlign: 'right' }}>Currently sorting products<TextSemiBold> by {item.sortByPrice ? 'price' : 'default'}</TextSemiBold></TextRegular>
+              Sort by: {item.orderByPrice ? 'order' : 'default'}
             </TextRegular>
           </View>
         </Pressable>
-
         </View>
       </ImageCard>
     )
   }
-
+  const newOrder = async (restaurant) => {
+    setBackendErrors([])
+    try {
+      const updatedRestaurant = await updateOrder(restaurant.id)
+      await fetchRestaurants()
+      showMessage({
+        message: `Product ${updatedRestaurant.name} succesfully updated`,
+        type: 'success',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+      // navigation.navigate('RestaurantDetailScreen', { id: product.restaurantId })
+    } catch (error) {
+      console.log(error)
+      setBackendErrors(error.errors)
+    }
+  }
   const renderEmptyRestaurantsList = () => {
     return (
       <TextRegular textStyle={styles.emptyList}>
@@ -165,31 +182,6 @@ export default function RestaurantsScreen ({ navigation, route }) {
       setRestaurantToBeDeleted(null)
       showMessage({
         message: `Restaurant ${restaurant.name} could not be removed.`,
-        type: 'error',
-        style: GlobalStyles.flashStyle,
-        titleStyle: GlobalStyles.flashTextStyle
-      })
-    }
-  }
-  const updateRestaurantOrder = async (restaurant) => {
-    try {
-      const updatedOrder = await updateOrder(restaurant.id)
-      if (updatedOrder) {
-        await fetchRestaurants()
-
-        /// setRestaurantToBeUpdatedOrder(null)
-        showMessage({
-          message: `Restaurant ${restaurant.name} succesfully changed his product order`,
-          type: 'success',
-          style: GlobalStyles.flashStyle,
-          titleStyle: GlobalStyles.flashTextStyle
-        })
-      }
-    } catch (error) {
-      console.log(error)
-      // setRestaurantToBeUpdatedOrder(null)
-      showMessage({
-        message: `Restaurant ${restaurant.name} could not change his product order.`,
         type: 'error',
         style: GlobalStyles.flashStyle,
         titleStyle: GlobalStyles.flashTextStyle

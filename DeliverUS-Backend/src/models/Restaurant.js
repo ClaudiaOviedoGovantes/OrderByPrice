@@ -81,6 +81,10 @@ const loadModel = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    orderByPrice: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     sequelize,
